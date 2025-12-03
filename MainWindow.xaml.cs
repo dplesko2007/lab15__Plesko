@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -15,115 +10,70 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 
-namespace lab15__Plesko
+namespace HomeworkLab15
 {
     public partial class MainWindow : Window
     {
-        private const int TotalPairs = 10;
         private readonly DispatcherTimer _timer = new DispatcherTimer();
-        private int tenthOfSeconds;
-        private int matchesFound;
-        private readonly Random _random = new Random();
-        TextBlock _lastTextBlockClicked;
-        private bool _findingMatch = false;
+        private float totalSeconds;
+        private float currentSeconds;
         public MainWindow()
         {
             InitializeComponent();
+            TimerSelect.Items.Add(15);
+            TimerSelect.Items.Add(25);
+            TimerSelect.Items.Add(45);
+
+        }
+        private void ButtonStart_Click(object sender, RoutedEventArgs e)
+        {
             InitializeTimer();
-            SetUpGame();
+        }
+        private void ResetButton_Click(object sender, RoutedEventArgs e)
+        {
+            ResetTimer();
         }
 
+        private void TimerSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (TimerSelect.SelectedItem != null)
+            {
+                int minutes = (int)TimerSelect.SelectedItem;
+                totalSeconds = minutes * 60;
+                currentSeconds = totalSeconds;
+                UpdateTimerDisplay();
+            }
+        }
         private void InitializeTimer()
         {
             _timer.Interval = TimeSpan.FromSeconds(.1);
             _timer.Tick += Timer_Tick;
+            _timer.Start();
         }
-
         private void Timer_Tick(object sender, EventArgs e)
         {
-            tenthOfSeconds++;
-            timerTick.Text = $"{tenthOfSeconds/10F:0.0s}";
-            if (matchesFound == TotalPairs)
+            if(currentSeconds > 0)
             {
-                _timer.Stop();
-                timerTick.Text += "Play again";
+                currentSeconds -= 0.1f;
+                UpdateTimerDisplay();
             }
-        }
-        private readonly List<String> animalEmoji = new List<String>() {
-                "🐶","🐶",
-                "🐵","🐵",
-                "🐱","🐱",
-                "🦊","\U0001f98a",
-                "🐭","🐭",
-                "🐉","🐉",
-                "😺","😺",
-                "🐨","🐨",
-                "🦧","\U0001f9a7",
-                "🐒","🐒"
-
-            };
-        private void SetUpGame()
-        {
-            AssignRandomEmojis();
-            _timer.Start();
-            tenthOfSeconds = 0;
-            matchesFound = 0;
-
-        }
-        
-
-        private void TextBlock(object sender, MouseButtonEventArgs e)
-        {
-            if (!(sender is TextBlock clickedTextBlock && clickedTextBlock.Visibility == Visibility.Visible))
-            {
-                return;
-            }
-            if (!_findingMatch)
-            {
-                clickedTextBlock.Visibility = Visibility.Hidden;
-                _lastTextBlockClicked = clickedTextBlock;
-                _findingMatch = true;
-                return;
-            }
-            if (clickedTextBlock == _lastTextBlockClicked)
-            {
-                return;
-            }
-            if (clickedTextBlock.Text == _lastTextBlockClicked.Text)
-            {
-                clickedTextBlock.Visibility = Visibility.Hidden;
-                matchesFound++;
-            }
-
             else
             {
-                _lastTextBlockClicked.Visibility = Visibility.Visible;
-            }
-            _findingMatch = false;
-        }
-
-        private void Timer_Click(object sender, MouseButtonEventArgs e)
-        {
-            if (matchesFound == TotalPairs)
-            {
-                SetUpGame();
+                _timer.Stop();
+                MessageBox.Show("Время вышло!", "Таймер", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
-
-        private void AssignRandomEmojis()
+        private void UpdateTimerDisplay()
         {
-            foreach (var textBlock in mainGrid.Children.OfType<TextBlock>())
-            {
-                if (textBlock.Name != "timerTick")
-                {
-                    textBlock.Visibility = Visibility.Visible;
-                    int index = _random.Next(animalEmoji.Count);
-                    string nextEmoji = animalEmoji[index];
-                    textBlock.Text = nextEmoji;
-                    animalEmoji.RemoveAt(index);
-                }
-
-            }
+            int minutes = (int)(currentSeconds / 60);
+            int seconds = (int)(currentSeconds % 60);
+            Timer.Text = $"{minutes:D2}:{seconds:D2}";
+        }
+        private void ResetTimer()
+        {
+            _timer.Stop();
+            currentSeconds = totalSeconds;
+            UpdateTimerDisplay();
         }
     }
 }
